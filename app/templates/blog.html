@@ -1,0 +1,22 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Блог</h2>
+        <p id="header-p">Академия машинного обучения и обработки больших данных</p>
+        <div class="content-divider-top"></div>
+        <div class="card-wrapper">
+            <a href="{{ url_for('get_article', article_name='start_academy') }}" class="card">
+                <h4>Академия lazylearn начала работу</h4>
+                <p>16.08.2024</p>
+                <p>
+                    Состоялся релиз Академии машинного обучения и больших данных Lazylearn. Подробнее
+                    о целях и планах академии читайте в статье.
+                </p>
+            </a>
+        </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}

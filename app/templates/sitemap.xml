@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://lazylearn-academy.ru/home</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/about</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/courses</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/blog</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/helpproject</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/contacts</loc>
+    </url>
+    {% for theme in themes %}
+    <url>
+        <loc>https://lazylearn-academy.ru/{{ theme }}</loc>
+    </url>
+    {% endfor %} 
+    {% for article in articles %}
+    <url>
+        <loc>https://lazylearn-academy.ru/blog/articles/{{ article }}</loc>
+    </url>
+    {% endfor %} 
+</urlset>

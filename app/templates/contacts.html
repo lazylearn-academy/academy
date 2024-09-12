@@ -1,0 +1,20 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='contacts.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Контакты</h2>
+        <p>Академия машинного обучения и обработки больших данных</p>
+        <div class="content-divider-top"></div>
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>email</h4>
+                <p><a href= "mailto: lazylearn.academy@gmail.com"> 
+                    lazylearn.academy@gmail.com
+                 </a></p>
+            </div>
+        </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}

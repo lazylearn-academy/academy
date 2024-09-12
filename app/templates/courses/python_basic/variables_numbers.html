@@ -1,0 +1,88 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>числа</h2>
+        <p>Курс Python (базовый). блок 2, тема 2.</p>
+        <div class="content-divider-top"></div>
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>числа</h4>
+                <p>
+                    Python поддерживает несколько типов чисел:
+                    <ul>
+                        <li>
+                            <p>
+                                Целые числа (int)<br/>
+                                Целые числа — это числа без дробной части. В Python они могут быть как положительными, 
+                                так и отрицательными. Также в Python нет ограничения на размер целого числа, 
+                                помимо исчерпания оперативной памяти.
+                                <pre><code>a = 5<br/>b = -3<br/>c = 99999999999999999999999999999999  # Большое целое число</code></pre>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Вещественные числа (float)<br/>
+                                Вещественные числа — это числа с плавающей запятой (дробные числа). 
+                                Они представляют собой числа с десятичной частью.
+                                <pre><code>x = 3.14<br/>y = -0.001<br/>z = 2.0</code></pre>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Комплексные числа (complex)<br/>
+                                Комплексные числа состоят из действительной и мнимой частей и обозначаются с помощью буквы j.
+                                <pre><code>complex_number = 1 + 2j</code></pre>
+                            </p>
+                        </li>
+                    </ul>      
+                </p>
+            </div>
+        </div>
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>операции с числами</h4>
+                <p>
+                    Python позволяет выполнять основные арифметические операции:
+                    <ul>
+                        <li><p>Сложение (+)</p></li>
+                        <li><p>Вычитание (-)</p></li>
+                        <li><p>Умножение (*)</p></li>
+                        <li><p>Деление (/)</p></li>
+                        <li><p>Целочисленное деление (//)</p></li>
+                        <li><p>Остаток от деления (%)</p></li>
+                        <li><p>Возведение в степень (**)</p></li>
+                    </ul>
+                    <pre><code>a = 10<br/>b = 3<br/>print(a + b)  # 13<br/>print(a - b)  # 7<br/>print(a * b)  # 30<br/>print(a / b)  # 3.333...<br/>print(a // b) # 3<br/>print(a % b)  # 1<br/>print(a ** b) # 1000<br/></code></pre>
+                </p>
+                <p>Сложные операции с числами такие как расчет тригономитрических функций можно выполнить с помощью библиотек. Об этом чуть позже в курсе.</p>
+            </div>
+        </div>
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>задания</h4>
+                <p>Напишите программу, которая инициализирует (создает) две целочисленные переменные и выполните все основные операции. Повторите то же самое с вещественными числами.</p>
+                <p>
+                    Какой тип численной переменной использован в программе?
+                    <pre><code>num = 1 + 4j<br/>print(num)</code></pre>
+                </p>
+                <p> Проверьте себя и ответьте на вопросы:
+                    <ul>
+                        <li><p>Какие виды чисел вы знаете?</p></li>
+                        <li><p>Какие сущетсвуют основные операции над числами?</p></li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+        <div class="card-wrapper">
+            <div class="card">
+                <a id="back-link" href="{{ url_for('get_course', course_name='python_basic') }}">назад к курсу</a>
+                <a id="prev-theme-link" href="{{ url_for('get_theme', course_name='python_basic', theme_name='variables_review') }}">предыдущая тема</a>
+                <a id="next-theme-link" href="{{ url_for('get_theme', course_name='python_basic', theme_name='variables_strings_input') }}">следующая тема</a>
+            </div>
+        </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}

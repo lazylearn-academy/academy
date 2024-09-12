@@ -1,0 +1,24 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='helpproject.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Помощь проекту</h2>
+        <p>Академия машинного обучения и обработки больших данных</p>
+        <div class="content-divider-top"></div>
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>спасибо за поддержку</h4>
+                <p>(пожертвование является абсолютно добровольным и не дает никаких привилегий)</p>
+                <p class="desktop"><a href="https://yoomoney.ru/to/4100118790129052"> 
+                        https://yoomoney.ru/to/4100118790129052
+                </a></p>
+                <p class="mobile"><a href="https://yoomoney.ru/to/4100118790129052"> 
+                    yoomoney
+                </a></p>
+            </div>
+        </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}
