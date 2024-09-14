@@ -38,6 +38,12 @@ p {
     text-align: center;
   }
   
+  #recover-link {
+    text-decoration: none;
+    font: bolder;
+    margin-top: 3%;
+  }
+
 #reg-link {
   text-decoration: none;
   font: bolder;

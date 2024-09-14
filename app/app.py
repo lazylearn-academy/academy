@@ -54,6 +54,11 @@ class RegisterForm(FlaskForm):
         Length(min=8, max=30)
     ], render_kw={"placeholder": "Пароль"})
 
+    password_repeat = PasswordField(validators=[
+        InputRequired(),
+        Length(min=8, max=30)
+    ], render_kw={"placeholder": "Повторите пароль"})
+
     submit = SubmitField("Продолжить")
 
     @staticmethod
@@ -65,6 +70,30 @@ class RegisterForm(FlaskForm):
             raise ValidationError(
                 'Такая почта уже существует. Пожалуйста, проверьте правильность или войдите в систему.')
         
+
+
+class ChangePasswordForm(FlaskForm):
+    password = PasswordField(validators=[
+        InputRequired(),
+        Length(min=8, max=30)
+    ], render_kw={"placeholder": "Пароль"})
+
+    password_repeat = PasswordField(validators=[
+        InputRequired(),
+        Length(min=8, max=30)
+    ], render_kw={"placeholder": "Повторите пароль"})
+
+    submit = SubmitField("Продолжить")
+
+        
+class RecoverForm(FlaskForm):
+    email = EmailField(validators=[
+        InputRequired(),
+        Length(min=5, max=120)
+    ], render_kw={"placeholder": "Email"})
+
+    submit = SubmitField("Продолжить")
+
 
 class ConfirmationForm(FlaskForm):
     verification_code = StringField(validators=[
@@ -81,6 +110,15 @@ class ConfirmationForm(FlaskForm):
         if existing_user_email:
             raise ValidationError(
                 'Такая почта уже существует. Пожалуйста, проверьте правильность или войдите в систему.')
+
+
+class RecoverConfirmationForm(FlaskForm):
+    verification_code = StringField(validators=[
+        InputRequired()
+    ], render_kw={"placeholder": "Код подтверждения"})
+
+    submit = SubmitField("Зарегистрироваться")
+        
 
 
 class LoginForm(FlaskForm):
@@ -119,9 +157,8 @@ def login():
                 login_user(user)
                 return redirect(url_for('lk'))
             
-        return render_template('login.html', form=form, error="Неверный логин или пароль!", link_styles=[
-                     "", "color:white;", "", "", "", "", ""
-        ])
+        return render_template('login.html', form=form, error="Неверный логин или пароль!", 
+            link_styles=["", "color:white;", "", "", "", "", ""])
 
     return render_template('login.html', form=form, error="", link_styles=[
         "", "color:white;", "", "", "", "", ""
@@ -140,11 +177,18 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        user_exists = db.session.query(User.id).filter_by(login=form.email.data).first() is not None
-        if user_exists:
-                return render_template('register.html', form=form, error="Такой пользователь уже существует!", link_styles=[
+        user = User.query.filter_by(login=form.email.data).first()
+
+        if user is not None:
+            return render_template('register.html', form=form, error="Такой пользователь уже существует!", link_styles=[
+                "", "color:white;", "", "", "", "", ""
+            ])
+        
+        if form.password.data != form.password_repeat.data:
+                return render_template('register.html', form=form, error="Пароли не совпадают!", link_styles=[
                     "", "color:white;", "", "", "", "", ""
                 ])
+
         hashed_password = bcrypt.generate_password_hash(form.password.data.encode("utf-8"))
         hashed_password = hashed_password.decode("utf-8")
         code = random.randint(1000, 9999)
@@ -162,6 +206,59 @@ def register():
         return redirect(url_for('confirm', user_login=new_user.login))
 
     return render_template('register.html', form=form, error="", link_styles=[
+        "", "color:white;", "", "", "", "", ""
+    ])
+
+
+@app.route('/recover', methods=['GET', 'POST'])
+def recover():
+    form = RecoverForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(login=form.email.data).first()
+        
+        if user is None:
+                return render_template('recover.html', form=form, error="Такого пользователя не существует!", link_styles=[
+                    "", "color:white;", "", "", "", "", ""
+                ])
+        
+        code = random.randint(1000, 9999)
+        user.verification_code = code
+        db.session.commit()
+
+        send_email_verification({"email": user.login, "code": code})
+
+        return redirect(url_for('recover_confirm', user_login=user.login))
+
+    return render_template('recover.html', form=form, error="", link_styles=[
+        "", "color:white;", "", "", "", "", ""
+    ])
+
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    form = ChangePasswordForm()
+    user_login = request.args.get("user_login")
+
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(login=user_login).first()
+        if user is None:
+                return render_template('change_password.html', form=form, error="Такого пользователя не существует!", link_styles=[
+                    "", "color:white;", "", "", "", "", ""
+                ])
+        if form.password.data != form.password_repeat.data:
+                return render_template('change_password.html', form=form, error="Пароли не совпадают!", link_styles=[
+                    "", "color:white;", "", "", "", "", ""
+                ])
+        hashed_password = bcrypt.generate_password_hash(form.password.data.encode("utf-8"))
+        hashed_password = hashed_password.decode("utf-8")
+        user.password = hashed_password
+        db.session.commit()
+
+        return redirect(url_for('login'))
+
+    return render_template('change_password.html', form=form, error="", link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -192,6 +289,33 @@ def confirm():
         "", "color:white;", "", "", "", "", ""
     ])
 
+
+
+@app.route('/recover_confirm', methods=['GET', 'POST'])
+def recover_confirm():
+
+    user_login = request.args.get("user_login")
+    user = User.query.filter_by(login=user_login).first()
+    code = user.verification_code
+
+    form = RecoverConfirmationForm()
+
+    if form.validate_on_submit():
+
+        if form.verification_code.data == code:
+            user.is_email_approved = True
+            db.session.commit()
+
+            return redirect(url_for('change_password', user_login=user_login))
+        else:
+            return render_template("recover_confirm.html", form=form, error="Неверный код!", link_styles=[
+                "", "color:white;", "", "", "", "", ""
+        ])
+
+
+    return render_template("recover_confirm.html", form=form, error="", link_styles=[
+        "", "color:white;", "", "", "", "", ""
+    ])
 
 
 @app.route('/')

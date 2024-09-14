@@ -14,7 +14,10 @@
                     {{ form.submit(size=12, class_='form-item') }}
                 </form>
                 <div class="form-link-wrapper"><a id="reg-link" href="{{ url_for('register') }}">Нет аккаунта? Зарегистрируйтесь!</a></div>
-                <p class="error">{{ error }}</p>
+                {% if error != "" %}
+                    <p class="error">{{ error }}</p>
+                    <a href="{{ url_for('recover') }}" id='recover-link'>Восстановить пароль</a>
+                {% endif %}
             </div>
         <div class="content-divider-bottom"></div>
     </main>
