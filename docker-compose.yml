@@ -33,9 +33,9 @@ services:
     build:
       context: ./app
     env_file:
-      ./app/.env
+      ./app/.env-non-dev
     container_name: celery_app
-    command: ["/fastapi_app/docker/celery.sh", "celery"]
+    command: ["/app/docker/celery.sh"]
     depends_on:
       - redis
     
