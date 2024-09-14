@@ -11,6 +11,7 @@ from jinja2 import StrictUndefined
 from config import SECRET_KEY
 import random
 from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
+from config import REDIS_HOST, REDIS_PORT
 from post import send_email_verification
 from celery import Celery
 
