@@ -3,6 +3,8 @@ version: '3'
 services:
   web:
     build: ./app
+    env_file:
+      - ./app/.env-non-dev
     ports:
       - "5000"
     networks:
