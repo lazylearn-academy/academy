@@ -34,6 +34,8 @@ services:
   celery:
     build:
       context: ./app
+    env_file:
+      - ./app/.env-non-dev
     command: celery -A app.celery worker --loglevel=info
     depends_on:
       - redis
