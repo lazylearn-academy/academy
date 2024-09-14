@@ -35,7 +35,7 @@ services:
     env_file:
       ./app/.env-non-dev
     container_name: celery_app
-    command: ["celery --app=tasks.tasks:celery worker -l INFO"]
+    command: ["celery -A tasks.tasks.celery worker -l INFO"]
     depends_on:
       - redis
     
