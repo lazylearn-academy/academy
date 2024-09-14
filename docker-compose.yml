@@ -21,20 +21,6 @@ services:
       - ./certs/key.pem:/etc/ssl/certs/key.pem
     networks:
       - app-network
-
-  redis:
-    image: redis:7
-    container_name: redis_app
-    command: --port 6379
-    expose:
-      - 6379
-
-  celery:
-    build:
-      context: ./app
-    command: celery -A app.celery worker --loglevel=info
-    depends_on:
-      - redis
     
 networks:
   app-network:
