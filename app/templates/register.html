@@ -9,11 +9,14 @@
             <div class="form-wrapper">
                 <form method="POST" action="">
                     {{ form.hidden_tag() }}
-                    {{ form.email(size=12, class_='form-item') }}
-                    {{ form.password(size=12,class_='form-item') }}
-                    {{ form.submit(size=12, class_='form-item') }}
+                    {{ form.email(size=25, class_='form-item') }}
+                    {{ form.name(size=25, class_='form-item') }}
+                    {{ form.surname(size=25, class_='form-item') }}
+                    {{ form.password(size=25,class_='form-item') }}
+                    {{ form.submit(size=25, class_='form-item') }}
                 </form>
-                <a id="log-link" href="{{ url_for('login') }}">Есть аккаунт? Войти</a>
+                <div class="form-link-wrapper"><a id="log-link" href="{{ url_for('login') }}">Есть аккаунт? Войти</a></div>
+                <p class="error">{{ error }}</p>
             </div>
         <div class="content-divider-bottom"></div>
     </main>

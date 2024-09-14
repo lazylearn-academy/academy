@@ -4,17 +4,18 @@
 {% endblock %}
 {% block content %}
     <main id="main" class="flexbox-col">
-        <h2>Личный кабинет</h2>
+        <h2>Регистрация</h2>
         <div class="content-divider-top"></div>
-            <div class=".form-wrapper">
+            <div class="form-wrapper">
                 <h3>Подтвердите email</h3>
                 <p>Мы отправили код подтверждения на указанную почту</p>
                 <form method="POST" action="">
                     {{ form.hidden_tag() }}
-                    {{ form.verification_code(size=12, class_='form-item) }}
+                    {{ form.verification_code(size=12, class_='form-item') }}
                     {{ form.submit(size=12, class_='form-item') }}
                 </form>
-                <a id="log-link" href="{{ url_for('login') }}">Есть аккаунт? Войти</a>
+                <div class="form-link-wrapper"><a id="log-link" href="{{ url_for('login') }}">Есть аккаунт? Войти</a></div>
+                <p class="error">{{ error }}</p>
             </div>
         <div class="content-divider-bottom"></div>
     </main>

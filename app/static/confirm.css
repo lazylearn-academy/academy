@@ -24,8 +24,8 @@ p {
   margin-top: 2%;
   margin-bottom: 2%;
   border: 2px solid hsla(var(--primary), 1);
-  border-radius: 10%;
-  padding: 10%;
+  border-radius: 2%;
+  padding: 2%;
   background-color: hsl(var(--black));
 }
 
@@ -33,6 +33,15 @@ p {
 text-decoration: none;
 font: bolder;
 margin-top: 3%;
+}
+
+.error {
+  color: rgb(255, 0, 106);
+}
+
+.form-link-wrapper {
+  display: block;
+  text-align: center;
 }
 
 .form-wrapper form {

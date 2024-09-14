@@ -29,6 +29,15 @@ p {
     background-color: hsl(var(--black));
   }
 
+  .error {
+    color: rgb(255, 0, 106);
+  }
+
+  .form-link-wrapper {
+    display: block;
+    text-align: center;
+  }
+  
 #reg-link {
   text-decoration: none;
   font: bolder;

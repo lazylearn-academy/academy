@@ -10,9 +10,11 @@ from publisher import send_email_verification
 from jinja2 import StrictUndefined
 from config import DB_NAME, SECRET_KEY
 import random
+from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_NAME}.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DB_USER}:{DB_PWD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 app.jinja_env.undefined = StrictUndefined
@@ -34,6 +36,16 @@ class RegisterForm(FlaskForm):
         InputRequired(),
         Length(min=5, max=120)
     ], render_kw={"placeholder": "Email"})
+
+    name = StringField(validators=[
+        InputRequired(),
+        Length(min=1, max=30)
+    ], render_kw={"placeholder": "Имя"})
+
+    surname = StringField(validators=[
+        InputRequired(),
+        Length(min=1, max=30)
+    ], render_kw={"placeholder": "Фамилия"})
 
     password = PasswordField(validators=[
         InputRequired(),
@@ -86,10 +98,12 @@ class LoginForm(FlaskForm):
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     login = db.Column(db.String(120), nullable=False, unique=True)
-    password = db.Column(db.String(30), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     is_email_approved = db.Column(db.Boolean, nullable=False, default=False)
     verification_code = db.Column(db.String(4), nullable=False, unique=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    name = db.Column(db.String(30), nullable=False, unique=False)
+    surname = db.Column(db.String(30), nullable=False, unique=False)
 
 
 
@@ -102,8 +116,12 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for('lk'))
+            
+        return render_template('login.html', form=form, error="Неверный логин или пароль!", link_styles=[
+                     "", "color:white;", "", "", "", "", ""
+        ])
 
-    return render_template('login.html', form=form, link_styles=[
+    return render_template('login.html', form=form, error="", link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -120,9 +138,19 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
+        user_exists = db.session.query(User.id).filter_by(login=form.email.data).first() is not None
+        if user_exists:
+                return render_template('register.html', form=form, error="Такой пользователь уже существует!", link_styles=[
+                    "", "color:white;", "", "", "", "", ""
+                ])
+        hashed_password = bcrypt.generate_password_hash(form.password.data.encode("utf-8"))
+        hashed_password = hashed_password.decode("utf-8")
         code = random.randint(1000, 9999)
-        new_user = User(login=form.email.data, password=hashed_password, verification_code=code)
+        new_user = User(login=form.email.data, 
+                        password=hashed_password, 
+                        name=form.name.data,
+                        surname=form.surname.data,
+                        verification_code=code)
 
         send_email_verification({"email": new_user.login, "code": code})
 
@@ -131,7 +159,7 @@ def register():
 
         return redirect(url_for('confirm', user_login=new_user.login))
 
-    return render_template('register.html', form=form, link_styles=[
+    return render_template('register.html', form=form, error="", link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -146,14 +174,19 @@ def confirm():
     form = ConfirmationForm()
 
     if form.validate_on_submit():
-        # check if code is correct
+
         if form.verification_code.data == code:
             user.is_email_approved = True
             db.session.commit()
 
             return redirect(url_for('login'))
+        else:
+            return render_template("confirm.html", form=form, error="Неверный код!", link_styles=[
+                "", "color:white;", "", "", "", "", ""
+        ])
 
-    return render_template("confirm.html", form=form, link_styles=[
+
+    return render_template("confirm.html", form=form, error="", link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -170,7 +203,7 @@ def home():
 @app.route('/lk')
 @login_required
 def lk():
-    return render_template("lk.html", link_styles=[
+    return render_template("lk.html", user=current_user, link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -268,4 +301,6 @@ def robots():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run("0.0.0.0")
