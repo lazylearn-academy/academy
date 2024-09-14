@@ -7,8 +7,6 @@ services:
       - "5000"
     networks:
       - app-network
-    depends_on:
-      - redis
 
   nginx:
     image: nginx:alpine
