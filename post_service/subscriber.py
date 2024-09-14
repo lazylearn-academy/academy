@@ -2,14 +2,24 @@ import pika, sys, os
 import pickle
 from utils import verify_email
 from config import RABBIT_USER, RABBIT_PWD, RABBIT_HOST, RABBIT_PORT
+import time
 
-def main():
-    credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PWD)
-    parameters = pika.ConnectionParameters(RABBIT_HOST,
+def connect():
+    while True:
+        try:
+            credentials = pika.PlainCredentials(RABBIT_USER, RABBIT_PWD)
+            parameters = pika.ConnectionParameters(RABBIT_HOST,
                                    RABBIT_PORT,
                                    '/',
                                    credentials)
-    connection = pika.BlockingConnection(parameters)
+            connection = pika.BlockingConnection(parameters)
+            return connection
+        except pika.exceptions.AMQPConnectionError:
+            print("Connection failed, retrying in 5 seconds...")
+            time.sleep(5)
+
+def main():
+    connection = connect()
     channel = connection.channel()
 
     channel.queue_declare(queue='email_verifications', durable=True)
