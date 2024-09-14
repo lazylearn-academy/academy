@@ -60,9 +60,22 @@ margin-top: 3%;
     font-size: 180%;
   }
 }
-
 @media only screen and (max-width: 780px) {
   p {
       font-size: 140%;
+  }
+
+  .form-wrapper {
+    width: 80%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    border: 2px solid hsla(var(--primary), 1);
+    border-radius: 10%;
+    padding: 6%;
+    background-color: hsl(var(--black));
+  }
+
+  .content-divider-bottom {
+    margin-bottom: 180%;
   }
 }

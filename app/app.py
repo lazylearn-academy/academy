@@ -373,14 +373,15 @@ def helpproject():
 
 
 @app.route('/courses/<course_name>')
+@login_required
 def get_course(course_name):
     return render_template(f"courses/{course_name}/course_{course_name}.html", link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])
 
 
-
 @app.route('/courses/<course_name>/themes/<theme_name>')
+@login_required
 def get_theme(course_name, theme_name):
     return render_template(f"courses/{course_name}/{theme_name}.html", link_styles=[
         "", "", "", "color:white;", "", "", ""
