@@ -2,7 +2,7 @@ version: '3'
 
 services:
   web:
-    build: .
+    build: ./app
     env_file:
       - ./app/.env-non-dev
     ports:
@@ -31,11 +31,11 @@ services:
 
   celery:
     build:
-      context: .
+      context: ./app
     env_file:
       ./app/.env-non-dev
     container_name: celery_app
-    command: ["/app/docker/celery.sh"]
+    command: ["celery --app=tasks.tasks:celery worker -l INFO"]
     depends_on:
       - redis
     
