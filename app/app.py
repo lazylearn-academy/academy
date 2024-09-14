@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from wtforms import EmailField, PasswordField, SubmitField, StringField, DateField, TextAreaField, SelectField, FieldList, IntegerField
 from flask_wtf import FlaskForm
+from flask_migrate import Migrate
 from wtforms.validators import InputRequired, Length, ValidationError, regexp
 import os
 from publisher import send_email_verification
@@ -21,6 +22,7 @@ app.jinja_env.undefined = StrictUndefined
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -301,6 +303,4 @@ def robots():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run("0.0.0.0")

@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 Flask-WTF
 WTForms
 pika
+Flask-Migrate
