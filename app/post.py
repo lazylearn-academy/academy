@@ -2,11 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
 from config import POST_USER, POST_PWD, REDIS_HOST, REDIS_PORT
-from celery import Celery
 
-celery = Celery('tasks', broker=f'redis://{REDIS_HOST}:{REDIS_PORT}')
-
-@celery.task
 def send_email_verification(user, code):
     login = POST_USER
     password = POST_PWD
