@@ -11,18 +11,10 @@ from jinja2 import StrictUndefined
 from config import SECRET_KEY
 import random
 from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
-from config import REDIS_HOST, REDIS_PORT
 from post import send_email_verification
-from celery import Celery
 
 
 app = Flask(__name__)
-
-app.config['CELERY_BROKER_URL'] = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-app.config['CELERY_RESULT_BACKEND'] = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
-
-celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'], broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DB_USER}:{DB_PWD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -43,9 +35,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@celery.task
-def verify_email(user, code):
-    send_email_verification(user, code)
 
 class RegisterForm(FlaskForm):
     email = EmailField(validators=[
@@ -212,7 +201,7 @@ def register():
                         surname=form.surname.data,
                         verification_code=code)
 
-        verify_email.delay(new_user.login, code)
+        send_email_verification(new_user.login, code)
 
         db.session.add(new_user)
         db.session.commit()
@@ -240,7 +229,7 @@ def recover():
         user.verification_code = code
         db.session.commit()
 
-        verify_email.delay(user.login, code)
+        send_email_verification(user.login, code)
 
         return redirect(url_for('recover_confirm', user_login=user.login))
 
