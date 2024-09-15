@@ -142,7 +142,13 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Войти в систему")
 
 
+course_identifier = db.Table('course_identifier',
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'))
+)
+
 class User(db.Model, UserMixin):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     login = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
@@ -151,7 +157,28 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.String(30), nullable=False, unique=False)
     surname = db.Column(db.String(30), nullable=False, unique=False)
+    courses = db.relationship("Course", secondary=course_identifier)
 
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    short_description = db.Column(db.String(300), nullable=True)
+    long_description = db.Column(db.String(1500), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+
+class Theme(db.Model):
+    __tablename__ = 'themes'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    article_text = db.Column(db.String, nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id',
+                                                     ondelete='CASCADE',
+                                                     onupdate='CASCADE'))
+    session = db.relationship("courses", backref="themes", passive_deletes=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -330,7 +357,6 @@ def recover_confirm():
 
 
 @app.route('/')
-@app.route('/home')
 def home():
     return render_template("index.html", link_styles=[
         "color:white;", "", "", "", "", "", ""
