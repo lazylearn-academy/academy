@@ -164,15 +164,28 @@ class Course(db.Model):
     short_description = db.Column(db.String(300), nullable=True)
     long_description = db.Column(db.String(1500), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
-    themes = db.relationship('Theme', backref='course', lazy=True)
+    blocks = db.relationship('Block', backref='course', lazy=True)
+    is_ready = db.Column(db.Boolean, nullable=False, default=False)
+
+
+class Block(db.Model):
+    __tablename__ = 'block'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_in_course = db.Column(db.Integer, nullable=False, unique=False)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    themes = db.relationship('Theme', backref='block', lazy=True)
+
 
 
 class Theme(db.Model):
     __tablename__ = 'theme'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_in_block = db.Column(db.Integer, nullable=False, unique=False)
     name = db.Column(db.String(120), nullable=False, unique=True)
     article_text = db.Column(db.String, nullable=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    block_id = db.Column(db.Integer, db.ForeignKey('block.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
 
@@ -385,7 +398,8 @@ def contacts():
 
 @app.route('/courses')
 def courses():
-    return render_template("courses.html", link_styles=[
+    course_items = Course.query.order_by(Course.created_at).all()
+    return render_template("courses.html", course_items=course_items, link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])
 
@@ -397,17 +411,20 @@ def helpproject():
     ])
 
 
-@app.route('/courses/<course_name>')
+@app.route('/courses/<course_id>')
 @login_required
-def get_course(course_name):
-    return render_template(f"courses/{course_name}/course_{course_name}.html", link_styles=[
+def get_course(course_id):
+    course_item = Course.query.filter_by(id = course_id).first()
+    print(course_item.blocks[0].themes)
+    return render_template(f"course.html", course_item=course_item, link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])
 
 
-@app.route('/courses/<course_name>/themes/<theme_name>')
+@app.route('/themes/<theme_id>')
 @login_required
-def get_theme(course_name, theme_name):
+def get_theme(theme_id):
+    return theme_id
     return render_template(f"courses/{course_name}/{theme_name}.html", link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])

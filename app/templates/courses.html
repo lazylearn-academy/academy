@@ -7,29 +7,52 @@
         <h2>Курсы</h2>
         <p>Академия машинного обучения и обработки больших данных</p>
         <div class="content-divider-top"></div>
-        <div class="card-wrapper">
-            <a href="{{ url_for('get_course', course_name='python_basic') }}" class="card">
-                <h4>Python (базовый)</h4>
-                <p>Изучите основы Python, которые необходимы для дальнейшего обучения в академии.</p>
-            </a>
-            <a href="#" class="card" aria-current="disabled">
-                <h4>Машинное обучение (базовый)</h4>
-                <p>Погрузитесь в машинное обучение и обработку данных. После прохождения сможете определиться с дальнейшим развитием.</p>
-                <span class="coming-soon">скоро!</span>
-            </a>
-        </div>
-        <div class="card-wrapper">
-            <a href="#" class="card" aria-current="disabled">
-                <h4>Машинное обучение (углубленный)</h4>
-                <p>Узнаете классические алгоритмы машинного обучения на профессиональном уровне.</p>
-                <span class="coming-soon">скоро!</span>
-            </a>
-            <a href="#" class="card" aria-current="disabled">
-                <h4>Нейронные сети (углубленный)</h4>
-                <p>Получите все необходимые навыки для работы с различными нейросетями. После этого курса можно проходить материал по отраслям.</p>
-                <span class="coming-soon">скоро!</span>
-            </a>
-        </div>
+        {% for i in range(0, course_items|length, 2) %}
+            {% if i + 1 == course_items|length %}
+                <div class="card-wrapper">
+                    {% if course_items[i].is_ready %}
+                    <a href="{{ url_for('get_course', course_id=course_items[i].id) }}" class="card">
+                        <h4>{{ course_items[i].name }}</h4>
+                        <p>{{ course_items[i].short_description }}</p>
+                    </a>
+                    {% else %}
+                    <a href="#" class="card" aria-current="disabled">
+                        <h4>{{ course_items[i].name }}</h4>
+                        <p>{{ course_items[i].short_description }}</p>
+                        <span class="coming-soon">скоро!</span>
+                    </a>
+                    {% endif %}
+                </div>
+            {% else %}
+            <div class="card-wrapper">
+                {% if course_items[i].is_ready %}
+                <a href="{{ url_for('get_course', course_id=course_items[i].id) }}" class="card">
+                    <h4>{{ course_items[i].name }}</h4>
+                    <p>{{ course_items[i].short_description }}</p>
+                </a>
+                {% else %}
+                <a href="#" class="card" aria-current="disabled">
+                    <h4>{{ course_items[i].name }}</h4>
+                    <p>{{ course_items[i].short_description }}</p>
+                    <span class="coming-soon">скоро!</span>
+                </a>
+                {% endif %}
+                {% if course_items[i+1].is_ready %}
+                <a href="{{ url_for('get_course', course_id=course_items[i+1].id) }}" class="card">
+                    <h4>{{ course_items[i+1].name }}</h4>
+                    <p>{{ course_items[i+1].short_description }}</p>
+                </a>
+                {% else %}
+                <a href="#" class="card" aria-current="disabled">
+                    <h4>{{ course_items[i+1].name }}</h4>
+                    <p>{{ course_items[i+1].short_description }}</p>
+                    <span class="coming-soon">скоро!</span>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
         <div class="content-divider-bottom"></div>
     </main>
 {% endblock %}

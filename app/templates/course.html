@@ -1,0 +1,24 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='course.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>{{ course_item.name }}</h2>
+        <p>{{ course_item.long_description }}</p>
+        <div class="content-divider-top"></div>
+        {% for block_item in course_item.blocks|sort(attribute='order_in_course') %}
+            <div class="card-wrapper">
+                <div class="card">
+                    <h4>{{ block_item.name }}</h4>
+            {% for theme_item in block_item.themes|sort(attribute='order_in_block') %}
+                    <p><a href= "{{ url_for('get_theme', theme_id=theme_item.id) }}"> 
+                        {{ theme_item.order_in_block }}) {{ theme_item.name }}
+                     </a></p>
+            {% endfor %}
+                </div>
+            </div> 
+        {% endfor %}
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}
