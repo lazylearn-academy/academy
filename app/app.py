@@ -415,8 +415,7 @@ def helpproject():
 @login_required
 def get_course(course_id):
     course_item = Course.query.filter_by(id = course_id).first()
-    print(course_item.blocks[0].themes)
-    return render_template(f"course.html", course_item=course_item, link_styles=[
+    return render_template("course.html", course_item=course_item, link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])
 
@@ -424,8 +423,32 @@ def get_course(course_id):
 @app.route('/themes/<theme_id>')
 @login_required
 def get_theme(theme_id):
-    return theme_id
-    return render_template(f"courses/{course_name}/{theme_name}.html", link_styles=[
+    theme_item = Theme.query.filter_by(id = theme_id).first()
+    theme_block = Block.query.filter_by(id = theme_item.block_id).first()
+    block_order_in_course = theme_block.order_in_course
+    theme_course = Course.query.filter_by(id = theme_block.course_id).first()
+    course_name = theme_course.name
+    course_id = theme_course.id
+    ordered_blocks = Block.query.filter_by(course_id=course_id).order_by(Block.order_in_course).all()
+    ordered_themes = []
+    for block in ordered_blocks:
+        ordered_themes.extend([t.id for t in block.themes])
+    
+    theme_id = int(theme_id)
+    next_theme_id = None
+    previous_theme_id = None
+    if theme_id == ordered_themes[0]:
+        next_theme_id = ordered_themes[1]
+    elif theme_id == ordered_themes[-1]:
+        previous_theme_id = ordered_themes[-2]
+    else:
+        theme_idx_in_order = ordered_themes.index(theme_id)
+        next_theme_id = ordered_themes[theme_idx_in_order + 1]
+        previous_theme_id = ordered_themes[theme_idx_in_order - 1]
+
+    return render_template("theme.html", theme_item=theme_item, block_order_in_course=block_order_in_course, 
+                           course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
+                           link_styles=[
         "", "", "", "color:white;", "", "", ""
     ])
 
