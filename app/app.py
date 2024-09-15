@@ -470,16 +470,11 @@ def favicon():
 def sitemap():
     course_folder = 'templates/courses'
 
-    themes = []
-    for root, dirs, files in os.walk(course_folder):
-        for dir in dirs:
-            dir_path = os.path.join(root, dir)
-            for file in os.listdir(dir_path):
-                file_name, file_ext = os.path.splitext(file)
-                themes.append(f"courses/{dir}/themes/{file_name}")
+    themes = [t.id for t in Theme.query.all()]
+    courses = [c.id for c in Course.query.all()]
 
     articles = list(map(lambda x: os.path.splitext(x)[0], os.listdir("templates/blog")))
-    sm_xml = render_template("sitemap.xml", themes=themes, articles=articles)
+    sm_xml = render_template("sitemap.xml", themes=themes, articles=articles, courses=courses)
     response = make_response(sm_xml)
     response.headers["Content-Type"] = "application/rss+xml"
     response.mimetype = "application/xml"

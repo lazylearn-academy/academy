@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://lazylearn-academy.ru/home</loc>
+        <loc>https://lazylearn-academy.ru</loc>
     </url>
     <url>
         <loc>https://lazylearn-academy.ru/about</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/login</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/lk</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/register</loc>
+    </url>
+    <url>
+        <loc>https://lazylearn-academy.ru/recover</loc>
     </url>
     <url>
         <loc>https://lazylearn-academy.ru/courses</loc>
@@ -18,9 +30,14 @@
     <url>
         <loc>https://lazylearn-academy.ru/contacts</loc>
     </url>
-    {% for theme in themes %}
+    {% for theme_id in themes %}
     <url>
-        <loc>https://lazylearn-academy.ru/{{ theme }}</loc>
+        <loc>https://lazylearn-academy.ru/themes/{{ theme_id }}</loc>
+    </url>
+    {% endfor %} 
+    {% for course_id in courses %}
+    <url>
+        <loc>https://lazylearn-academy.ru/courses/{{ course_id }}</loc>
     </url>
     {% endfor %} 
     {% for article in articles %}
