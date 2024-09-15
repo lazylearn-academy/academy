@@ -17,6 +17,7 @@ from post import send_email_verification
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DB_USER}:{DB_PWD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True} 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 app.jinja_env.undefined = StrictUndefined
@@ -142,13 +143,14 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Войти в систему")
 
 
-course_identifier = db.Table('course_identifier',
-    db.Column('course_id', db.Integer, db.ForeignKey('courses.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'))
+user_course = db.Table('user_course',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 )
 
+
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     login = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
@@ -157,27 +159,25 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     name = db.Column(db.String(30), nullable=False, unique=False)
     surname = db.Column(db.String(30), nullable=False, unique=False)
-    courses = db.relationship("Course", secondary=course_identifier)
+    courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
 
 
 class Course(db.Model):
-    __tablename__ = 'courses'
+    __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(120), nullable=False, unique=True)
     short_description = db.Column(db.String(300), nullable=True)
     long_description = db.Column(db.String(1500), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    themes = db.relationship('Theme', backref='course', lazy=True)
 
 
 class Theme(db.Model):
-    __tablename__ = 'themes'
+    __tablename__ = 'theme'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(120), nullable=False, unique=True)
     article_text = db.Column(db.String, nullable=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id',
-                                                     ondelete='CASCADE',
-                                                     onupdate='CASCADE'))
-    session = db.relationship("courses", backref="themes", passive_deletes=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
 
