@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, render_template, make_response, redirect, url_for, request
+from flask import Flask, render_template, send_from_directory, render_template, make_response, redirect, url_for, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -189,6 +189,15 @@ class Theme(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
 
+class BlogPost(db.Model):
+    __tablename__ = 'blogpost'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    abstract = db.Column(db.String(500), nullable=True)
+    article_text = db.Column(db.String, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -335,7 +344,6 @@ def confirm():
 
 @app.route('/recover_confirm', methods=['GET', 'POST'])
 def recover_confirm():
-
     user_login = request.args.get("user_login")
     user = User.query.filter_by(login=user_login).first()
     code = user.verification_code
@@ -384,7 +392,8 @@ def about():
 
 @app.route('/blog')
 def blog():
-    return render_template("blog.html", link_styles=[
+    blogposts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+    return render_template("blog.html", blogposts=blogposts, link_styles=[
         "", "", "", "", "color:white;", "", ""
     ])
 
@@ -414,50 +423,60 @@ def helpproject():
 @app.route('/courses/<course_id>')
 @login_required
 def get_course(course_id):
-    course_item = Course.query.filter_by(id = course_id).first()
-    return render_template("course.html", course_item=course_item, link_styles=[
-        "", "", "", "color:white;", "", "", ""
-    ])
+    try:
+        course_item = Course.query.filter_by(id = course_id).first()
+        return render_template("course.html", course_item=course_item, link_styles=[
+            "", "", "", "color:white;", "", "", ""
+        ])
+    except:
+        abort(404)
 
 
 @app.route('/themes/<theme_id>')
 @login_required
 def get_theme(theme_id):
-    theme_item = Theme.query.filter_by(id = theme_id).first()
-    theme_block = Block.query.filter_by(id = theme_item.block_id).first()
-    block_order_in_course = theme_block.order_in_course
-    theme_course = Course.query.filter_by(id = theme_block.course_id).first()
-    course_name = theme_course.name
-    course_id = theme_course.id
-    ordered_blocks = Block.query.filter_by(course_id=course_id).order_by(Block.order_in_course).all()
-    ordered_themes = []
-    for block in ordered_blocks:
-        ordered_themes.extend([t.id for t in block.themes])
-    
-    theme_id = int(theme_id)
-    next_theme_id = None
-    previous_theme_id = None
-    if theme_id == ordered_themes[0]:
-        next_theme_id = ordered_themes[1]
-    elif theme_id == ordered_themes[-1]:
-        previous_theme_id = ordered_themes[-2]
-    else:
-        theme_idx_in_order = ordered_themes.index(theme_id)
-        next_theme_id = ordered_themes[theme_idx_in_order + 1]
-        previous_theme_id = ordered_themes[theme_idx_in_order - 1]
+    try:
+        theme_item = Theme.query.filter_by(id = theme_id).first()
+        theme_block = Block.query.filter_by(id = theme_item.block_id).first()
+        block_order_in_course = theme_block.order_in_course
+        theme_course = Course.query.filter_by(id = theme_block.course_id).first()
+        course_name = theme_course.name
+        course_id = theme_course.id
+        ordered_blocks = Block.query.filter_by(course_id=course_id).order_by(Block.order_in_course).all()
+        ordered_themes = []
+        for block in ordered_blocks:
+            ordered_themes.extend([t.id for t in block.themes])
 
-    return render_template("theme.html", theme_item=theme_item, block_order_in_course=block_order_in_course, 
-                           course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
-                           link_styles=[
-        "", "", "", "color:white;", "", "", ""
-    ])
+        theme_id = int(theme_id)
+        next_theme_id = None
+        previous_theme_id = None
+        if theme_id == ordered_themes[0]:
+            next_theme_id = ordered_themes[1]
+        elif theme_id == ordered_themes[-1]:
+            previous_theme_id = ordered_themes[-2]
+        else:
+            theme_idx_in_order = ordered_themes.index(theme_id)
+            next_theme_id = ordered_themes[theme_idx_in_order + 1]
+            previous_theme_id = ordered_themes[theme_idx_in_order - 1]
+
+        return render_template("theme.html", theme_item=theme_item, block_order_in_course=block_order_in_course, 
+                               course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
+                               link_styles=[
+            "", "", "", "color:white;", "", "", ""
+        ])
+    except:
+        abort(404)
 
 
-@app.route('/blog/articles/<article_name>')
-def get_article(article_name):
-    return render_template(f"blog/{article_name}.html", link_styles=[
-        "", "", "", "", "color:white;", "", ""
-    ])
+@app.route('/blog/posts/<blogpost_id>')
+def get_blogpost(blogpost_id):
+    try:
+        blogpost = BlogPost.query.filter_by(id=blogpost_id).first()
+        return render_template(f"blogpost.html",blogpost=blogpost, link_styles=[
+            "", "", "", "", "color:white;", "", ""
+        ])
+    except:
+        abort(404)
 
 
 @app.route('/favicon.ico')
@@ -468,8 +487,6 @@ def favicon():
 
 @app.route('/sitemap.xml', methods=["GET"])
 def sitemap():
-    course_folder = 'templates/courses'
-
     themes = [t.id for t in Theme.query.all()]
     courses = [c.id for c in Course.query.all()]
 

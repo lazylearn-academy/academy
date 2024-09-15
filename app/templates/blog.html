@@ -7,16 +7,17 @@
         <h2>Блог</h2>
         <p id="header-p">Академия машинного обучения и обработки больших данных</p>
         <div class="content-divider-top"></div>
+        {% for blogpost in blogposts%}
         <div class="card-wrapper">
-            <a href="{{ url_for('get_article', article_name='start_academy') }}" class="card">
-                <h4>Академия lazylearn начала работу</h4>
-                <p>16.08.2024</p>
+            <a href="{{ url_for('get_blogpost', blogpost_id=blogpost.id) }}" class="card">
+                <h4>{{ blogpost.name }}</h4>
+                <p>{{ blogpost.created_at.strftime('%Y-%m-%d') }}</p>
                 <p>
-                    Состоялся релиз Академии машинного обучения и больших данных Lazylearn. Подробнее
-                    о целях и планах академии читайте в статье.
+                   {{ blogpost.abstract }}
                 </p>
             </a>
         </div>
+        {% endfor %}
         <div class="content-divider-bottom"></div>
     </main>
 {% endblock %}

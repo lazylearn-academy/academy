@@ -3,3 +3,4 @@ Allow: *
 Sitemap: https://lazylearn-academy.ru/sitemap.xml
 Host: https://lazylearn-academy.ru
 Disallow: /courses/python_basic
+Disallow: /blog/articles
