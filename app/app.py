@@ -36,11 +36,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@login_manager.unauthorized_handler
-def handle_needs_login():
-    return redirect(url_for('login', next=request.url))
-
-
 class RegisterForm(FlaskForm):
     email = EmailField(validators=[
         InputRequired(),
@@ -189,11 +184,7 @@ def login():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
-                dest = request.args.get('next').split("=")[-1]
-                if dest is not None:
-                    return redirect(dest)
-                else:
-                    return redirect(url_for("lk"))
+                return redirect(url_for("lk"))
             
         return render_template('login.html', form=form, error="Неверный логин или пароль!", 
             link_styles=["", "color:white;", "", "", "", "", ""])
