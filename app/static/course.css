@@ -56,3 +56,18 @@ p {
     margin-top: 3%;
     margin-bottom: 25%;
   }
+
+  .currently-disabled {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .select-course {
+    background: none;
+    margin-top: 2%;
+    border: 1px solid white;
+    cursor: pointer;
+  }
+.select-course p:hover {
+  color: hsla(var(--primary), 1); 
+}

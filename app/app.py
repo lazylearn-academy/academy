@@ -143,6 +143,11 @@ user_course = db.Table('user_course',
     db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 )
 
+user_theme = db.Table('user_theme',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
+)
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -155,7 +160,7 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(30), nullable=False, unique=False)
     surname = db.Column(db.String(30), nullable=False, unique=False)
     courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
-
+    completed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
 
 class Course(db.Model):
     __tablename__ = 'course'
@@ -425,7 +430,7 @@ def helpproject():
 def get_course(course_id):
     try:
         course_item = Course.query.filter_by(id = course_id).first()
-        return render_template("course.html", course_item=course_item, link_styles=[
+        return render_template("course.html", course_item=course_item, user=current_user, link_styles=[
             "", "", "", "color:white;", "", "", ""
         ])
     except:
@@ -464,6 +469,21 @@ def get_theme(theme_id):
                                link_styles=[
             "", "", "", "color:white;", "", "", ""
         ])
+    except:
+        abort(404)
+
+
+@app.route('/add_course', methods=["POST"])
+def add_course():
+    try:
+        user_id = request.args.get("user_id")
+        course_id = request.args.get("course_id")
+        user = User.query.filter_by(id=user_id).first()
+        course = Course.query.filter_by(id=course_id).first()
+        user.courses.append(course)
+        db.session.commit()
+
+        return redirect(url_for('get_course', course_id=course_id))
     except:
         abort(404)
 

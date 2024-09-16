@@ -7,6 +7,16 @@
         <h2>Личный кабинет</h2>
         <div class="content-divider-top"></div>
             <p>Добро пожаловать, {{ user.name }}!</p>
+            <div class="card-wrapper">
+                <div class="card">
+                    <h4>Мои курсы</h4>
+                    {% for course in user.courses %}
+                    <p><a href= "{{ url_for('get_course', course_id=course.id) }}"> 
+                        {{ course.name }}
+                     </a></p>
+                    {% endfor %}
+                </div>
+            </div> 
         <div class="content-divider-top"></div>
     </main>
 {% endblock %}
