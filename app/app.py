@@ -192,6 +192,7 @@ class Theme(db.Model):
     article_text = db.Column(db.String, nullable=True)
     block_id = db.Column(db.Integer, db.ForeignKey('block.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    coding_tasks = db.relationship('CodingTask', backref='theme', lazy=True)
 
 
 class BlogPost(db.Model):
@@ -201,6 +202,15 @@ class BlogPost(db.Model):
     abstract = db.Column(db.String(500), nullable=True)
     article_text = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+
+class CodingTask(db.Model):
+    __tablename__ = 'coding_task'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    task_text = db.Column(db.String(1200), nullable=False)
+    answer = db.Column(db.String(1200), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
