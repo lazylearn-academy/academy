@@ -8,6 +8,20 @@
         <p>Курс {{ course_name }}. блок {{ block_order_in_course }}, тема {{ theme_item.order_in_block }}.</p>
         <div class="content-divider-top"></div>
         {{ theme_item.article_text|safe }}
+        {% if theme_item.coding_tasks|length > 0 %}
+        <div class="card-wrapper">
+            <div class="card">
+                <h4>Задания</h4>
+                {% for coding_task in theme_item.coding_tasks %}
+                    {% if coding_task.id in user.completed_coding_tasks %}
+                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a style="color: rgb(27, 209, 27);" class="sandbox-link" href="#">Решено!</a></p>
+                    {% else %}
+                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a class="sandbox-link" href="#">Решить</a></p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
         <div class="card-wrapper">
             <div class="card">
                 <a id="back-link" href="{{ url_for('get_course', course_id=course_id) }}">назад к курсу</a>

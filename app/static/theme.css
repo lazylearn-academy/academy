@@ -8,6 +8,20 @@
     width: 100%;
 }
 
+
+.sandbox-link {
+  text-decoration: none;
+  border: 1px solid white;
+  padding: 1.5% 3% 1.5% 3%;
+  border-radius: 4%;
+  margin-left: 15%;
+}
+
+.sandbox-link:hover {
+  border-color: hsla(var(--primary), 1);
+  color: hsla(var(--primary), 1)
+}
+
 ul {
   color: hsl(var(--white));
 }

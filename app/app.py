@@ -148,6 +148,12 @@ user_theme = db.Table('user_theme',
     db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
 )
 
+user_coding_task = db.Table('user_coding_task',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('coding_task_id', db.Integer, db.ForeignKey('coding_task.id'), primary_key=True),
+)
+
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -161,6 +167,8 @@ class User(db.Model, UserMixin):
     surname = db.Column(db.String(30), nullable=False, unique=False)
     courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
     completed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
+    completed_coding_tasks = db.relationship('CodingTask', secondary=user_coding_task, lazy='subquery', backref=db.backref('users', lazy=True))
+
 
 class Course(db.Model):
     __tablename__ = 'course'
@@ -475,7 +483,7 @@ def get_theme(theme_id):
             next_theme_id = ordered_themes[theme_idx_in_order + 1]
             previous_theme_id = ordered_themes[theme_idx_in_order - 1]
 
-        return render_template("theme.html", theme_item=theme_item, block_order_in_course=block_order_in_course, 
+        return render_template("theme.html", user=current_user, theme_item=theme_item, block_order_in_course=block_order_in_course, 
                                course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
                                link_styles=[
             "", "", "", "color:white;", "", "", ""
