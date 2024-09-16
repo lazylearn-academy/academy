@@ -3,6 +3,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types.web_app_info import WebAppInfo
 
 API_TOKEN = '7347340152:AAGPVAOjW_VnWFDWKxFZGKuE4tQ5YMiD8Zg'
 
@@ -10,7 +11,7 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-# Обновленное меню команд
+# меню команд
 menu_commands = [
     ('/start', 'Начать взаимодействие с ботом'),
     ('/leave_review', 'Оставить отзыв'),
@@ -21,6 +22,9 @@ menu_commands = [
 menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 for command, description in menu_commands:
     menu_keyboard.add(KeyboardButton(f"{command} - {description}"))
+
+launch_app_button = KeyboardButton('Начать обучение', web_app=WebAppInfo(url='https://lazylearn-academy.ru/'))
+menu_keyboard.add(launch_app_button)
 
 cancel_button = KeyboardButton('Отмена')
 cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True).add(cancel_button)
@@ -38,8 +42,12 @@ class ReviewState(StatesGroup):
 async def send_welcome(message: types.Message):
     # Отправляем приветственное сообщение и список команд
     await message.reply(
-        """Это бот позволяет отправлять отзывы и сообщать о возникших проблемах при использовании проекта lazylearn.academy.
-\n*Доступные команды:*\n/start - Начать взаимодействие с ботом\n/leave_review - Оставить отзыв\n/report_problem - Сообщить о проблеме""",
+        "Это бот позволяет обучаться в Академии машинного обучения и обработки больших данных, не покидая телеграм." \
+        "Также с помощью него можно отправлять отзывы и сообщать о возникших проблемах при использовании проекта lazylearn.academy." \
+        "\n*Доступные команды:*" \
+        "\n/start - Начать взаимодействие с ботом" \
+        "\n/leave_review - Оставить отзыв" \
+        "\n/report_problem - Сообщить о проблеме",
         parse_mode="Markdown",
         reply_markup=menu_keyboard
     )
@@ -89,7 +97,6 @@ async def cancel_action(message: types.Message, state: FSMContext):
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer(message.text, reply_markup=menu_keyboard)
-
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
