@@ -210,6 +210,7 @@ class CodingTask(db.Model):
     task_text = db.Column(db.String(1200), nullable=False)
     answer = db.Column(db.String(1200), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    theme_id = db.Column(db.Integer, db.ForeignKey('theme.id'), nullable=False)
 
 
 
