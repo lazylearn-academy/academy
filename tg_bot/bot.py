@@ -26,16 +26,19 @@ for command, description in menu_commands:
 launch_app_button = KeyboardButton('Начать обучение', web_app=WebAppInfo(url='https://lazylearn-academy.ru/'))
 menu_keyboard.add(launch_app_button)
 
-cancel_button = KeyboardButton('Отмена')
+cancel_button = KeyboardButton('/cancel - Отмена')
 cancel_keyboard = ReplyKeyboardMarkup(resize_keyboard=True).add(cancel_button)
 
 confirm_button = KeyboardButton('Подтвердить')
-cancel_button = KeyboardButton('Отмена')
+cancel_button = KeyboardButton('/cancel - Отмена')
 confirm_keyboard = ReplyKeyboardMarkup(resize_keyboard=True).add(confirm_button, cancel_button)
 
 class ReviewState(StatesGroup):
     review = State()
     confirm_review = State()
+
+class ReportState(StatesGroup):
+    review = State()
     confirm_problem = State()
 
 @dp.message_handler(commands=['start'])
@@ -59,18 +62,29 @@ async def leave_review(message: types.Message):
 
 @dp.message_handler(commands=['report_problem'])
 async def report_problem(message: types.Message):
-    await ReviewState.review.set()
+    await ReportState.review.set()
     await message.reply("Пожалуйста, опишите возникшую проблему:", reply_markup=cancel_keyboard)
 
 @dp.message_handler(state=ReviewState.review)
 async def get_review(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['review'] = message.text
-    if message.text.startswith('/leave_review'):
+    if message.text.startswith('/cancel'):
+        await message.reply("Действие отменено.", reply_markup=menu_keyboard)
+        await state.finish()
+    else:
         await ReviewState.next()
         await message.reply("Вы хотите отправить следующий отзыв:", reply_markup=confirm_keyboard)
+
+@dp.message_handler(state=ReportState.review)
+async def get_report(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['review'] = message.text
+    if message.text.startswith('/cancel'):
+        await message.reply("Действие отменено.", reply_markup=menu_keyboard)
+        await state.finish()
     else:
-        await ReviewState.confirm_problem.set()
+        await ReportState.confirm_problem.set()
         await message.reply("Вы хотите отправить следующее описание проблемы:", reply_markup=confirm_keyboard)
 
 @dp.message_handler(lambda message: message.text == 'Подтвердить', state=ReviewState.confirm_review)
@@ -81,7 +95,7 @@ async def confirm_review(message: types.Message, state: FSMContext):
     await message.reply("Ваш отзыв был отправлен успешно!", reply_markup=menu_keyboard)
     await state.finish()
 
-@dp.message_handler(lambda message: message.text == 'Подтвердить', state=ReviewState.confirm_problem)
+@dp.message_handler(lambda message: message.text == 'Подтвердить', state=ReportState.confirm_problem)
 async def confirm_problem(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         review = data['review']
@@ -89,7 +103,7 @@ async def confirm_problem(message: types.Message, state: FSMContext):
     await message.reply("Ваше описание проблемы было отправлено успешно!", reply_markup=menu_keyboard)
     await state.finish()
 
-@dp.message_handler(lambda message: message.text == 'Отмена', state='*')
+@dp.message_handler(lambda message: message.text == '/cancel - Отмена', state='*')
 async def cancel_action(message: types.Message, state: FSMContext):
     await message.reply("Действие отменено.", reply_markup=menu_keyboard)
     await state.finish()
