@@ -1,3 +1,4 @@
+import locale
 from flask import Flask, render_template, send_from_directory, render_template, make_response, redirect, url_for, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -520,15 +521,16 @@ def get_blogpost(blogpost_id):
 
 
 @app.route('/sandbox', methods=["GET", "POST"])
+@login_required
 def sandbox():
     task_id = request.args.get("task_id")
     task_item = CodingTask.query.filter_by(id=task_id).first()
     if request.method == "GET":
-        return render_template("sandbox.html", task_item=task_item, link_styles=[
+        return render_template("sandbox.html", task_item=task_item, code_result=None, user=current_user, link_styles=[
                 "", "", "", "color:white;", "", "", ""
             ])
     elif request.method == "POST":
-        code = request.form.get("code")
+        code = request.form.get("code").encode("utf-8")
         output = ""
         error = ""
         try:
@@ -536,14 +538,28 @@ def sandbox():
                 [sys.executable, '-c', code],
                 capture_output=True,
                 text=True,
-                timeout=5  
+                timeout=2  
             )
             output = result.stdout
             error = result.stderr
         except Exception as e:
            error = str(e)
+        
+        output = output.strip()
 
-        return str([error, output])
+        if len(error) > 0:
+            code_result = f"Код работает с ошбикой: {error}"
+        elif output != task_item.answer:
+            code_result = f"Неверный ответ: {output}"
+        elif output == task_item.answer:
+            user = current_user
+            user.completed_coding_tasks.append(task_item)
+            db.session.commit()
+            code_result = None
+
+        return render_template("sandbox.html", task_item=task_item, code_result=code_result, user=current_user, link_styles=[
+                "", "", "", "color:white;", "", "", ""
+            ])
 
 
 @app.route('/favicon.ico')

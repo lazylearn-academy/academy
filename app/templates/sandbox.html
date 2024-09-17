@@ -10,10 +10,18 @@
            <div class="card">
                <h4>Задача #{{ task_item.id }}</h4>
                <p>{{ task_item.task_text }}</p>
-               <form method="POST" action="">
-                  <textarea name="code" placeholder="Введите ваш Python код..."></textarea><br>
-                  <input type="submit" value="Запустить">
-              </form>
+               <p>Необходимый результат: {{ task_item.answer }}</p>
+               {% if task_item in user.completed_coding_tasks %}
+                    <span class="completed">Задача решена!</span>
+               {% else %}
+                    <form method="POST" action="">
+                        <textarea name="code" placeholder="Введите ваш Python код..."></textarea><br>
+                        <input type="submit" value="Запустить">
+                    </form>
+                    {% if code_result is not none %}
+                        <span class="code-result-error">{{ code_result }}</span>
+                    {% endif %}
+              {% endif %}
             </div> 
          </div>
         <div class="content-divider-bottom"></div>

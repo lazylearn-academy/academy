@@ -105,3 +105,12 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+
+.completed {
+  color: rgb(27, 209, 27);
+}
+
+.code-result-error {
+  color: rgb(255, 0, 106);
+}
