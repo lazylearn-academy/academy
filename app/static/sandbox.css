@@ -127,3 +127,10 @@ form {
 .code-result-complete {
   color: rgb(27, 209, 27);
 }
+
+#back-link {
+  text-decoration: none;
+  color: hsl(var(--white));
+  padding-right: 5%;
+  font-size: 150%;
+}

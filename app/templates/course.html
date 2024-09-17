@@ -13,9 +13,15 @@
                     <div class="card">
                         <h4>{{ block_item.name }}</h4>
                 {% for theme_item in block_item.themes|sort(attribute='order_in_block') %}
-                        <p><a href= "{{ url_for('get_theme', theme_id=theme_item.id) }}"> 
+                        {% if theme_item in completed_themes %}
+                        <p><a style="color: rgb(27, 209, 27);" href= "{{ url_for('get_theme', theme_id=theme_item.id) }}"> 
+                            {{ theme_item.order_in_block }}) {{ theme_item.name }} &#10004;
+                         </a></p>
+                         {% else %}
+                         <p><a href= "{{ url_for('get_theme', theme_id=theme_item.id) }}"> 
                             {{ theme_item.order_in_block }}) {{ theme_item.name }}
                          </a></p>
+                         {% endif %}
                 {% endfor %}
                     </div>
                 </div> 

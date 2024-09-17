@@ -29,6 +29,9 @@
                 {% endif %}
             </div> 
          </div>
+         <div class="card-wrapper">
+            <div class="card"><a id="back-link" href="{{ url_for('get_theme', theme_id=task_item.theme_id) }}">вернуться к теме</a></p></div>
+        </div>
         <div class="content-divider-bottom"></div>
     </main>
 {% endblock %}

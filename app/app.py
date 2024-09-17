@@ -461,7 +461,9 @@ def helpproject():
 def get_course(course_id):
     try:
         course_item = Course.query.filter_by(id = course_id).first()
-        return render_template("course.html", course_item=course_item, user=current_user, link_styles=[
+        completed_themes = Theme.query.filter(Theme.id.in_([t.theme_id for t in current_user.completed_coding_tasks])).all()
+        return render_template("course.html", course_item=course_item, completed_themes=completed_themes,
+                               user=current_user, link_styles=[
             "", "", "", "color:white;", "", "", ""
         ])
     except:
