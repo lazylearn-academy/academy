@@ -145,11 +145,6 @@ user_course = db.Table('user_course',
     db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 )
 
-user_theme = db.Table('user_theme',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
-)
-
 user_coding_task = db.Table('user_coding_task',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('coding_task_id', db.Integer, db.ForeignKey('coding_task.id'), primary_key=True),
@@ -168,7 +163,6 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(30), nullable=False, unique=False)
     surname = db.Column(db.String(30), nullable=False, unique=False)
     courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
-    completed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
     completed_coding_tasks = db.relationship('CodingTask', secondary=user_coding_task, lazy='subquery', backref=db.backref('users', lazy=True))
 
 
