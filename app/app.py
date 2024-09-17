@@ -455,7 +455,20 @@ def helpproject():
 def get_course(course_id):
     try:
         course_item = Course.query.filter_by(id = course_id).first()
-        completed_themes = Theme.query.filter(Theme.id.in_([t.theme_id for t in current_user.completed_coding_tasks])).all()
+        course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course_id).with_entities(Block.id).all())).all()
+        completed_themes = []
+        for theme in course_themes:
+            if len(theme.coding_tasks) == 0:
+                continue
+            completed = True
+            for task in theme.coding_tasks:
+                if task not in current_user.completed_coding_tasks:
+                    completed = False
+                    break
+
+            if completed:
+                completed_themes.append(theme)
+
         return render_template("course.html", course_item=course_item, completed_themes=completed_themes,
                                user=current_user, link_styles=[
             "", "", "", "color:white;", "", "", ""
