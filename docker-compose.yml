@@ -19,6 +19,11 @@ services:
       - ./certs/key.pem:/etc/ssl/certs/key.pem
     networks:
       - app-network
+  
+  tg_bot:
+    build: ./tg_bot
+    networks:
+      - app-network
     
 networks:
   app-network:

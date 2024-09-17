@@ -477,7 +477,7 @@ def get_theme(theme_id):
         ordered_blocks = Block.query.filter_by(course_id=course_id).order_by(Block.order_in_course).all()
         ordered_themes = []
         for block in ordered_blocks:
-            ordered_themes.extend([t.id for t in block.themes])
+            ordered_themes.extend([t.id for t in Theme.query.filter_by(block_id=block.id).order_by(Theme.order_in_block).all()])
 
         theme_id = int(theme_id)
         next_theme_id = None

@@ -4,10 +4,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types.web_app_info import WebAppInfo
+from config import API_TOKEN
 
-API_TOKEN = '7347340152:AAGPVAOjW_VnWFDWKxFZGKuE4tQ5YMiD8Zg'
-
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=config["API_TOKEN"])
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
