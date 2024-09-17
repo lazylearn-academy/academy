@@ -12,7 +12,8 @@ from config import SECRET_KEY
 import random
 from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
 from post import send_email_verification
-
+import subprocess
+import sys
 
 app = Flask(__name__)
 
@@ -511,11 +512,38 @@ def add_course():
 def get_blogpost(blogpost_id):
     try:
         blogpost = BlogPost.query.filter_by(id=blogpost_id).first()
-        return render_template(f"blogpost.html",blogpost=blogpost, link_styles=[
+        return render_template("blogpost.html", blogpost=blogpost, link_styles=[
             "", "", "", "", "color:white;", "", ""
         ])
     except:
         abort(404)
+
+
+@app.route('/sandbox', methods=["GET", "POST"])
+def sandbox():
+    task_id = request.args.get("task_id")
+    task_item = CodingTask.query.filter_by(id=task_id).first()
+    if request.method == "GET":
+        return render_template("sandbox.html", task_item=task_item, link_styles=[
+                "", "", "", "color:white;", "", "", ""
+            ])
+    elif request.method == "POST":
+        code = request.form.get("code")
+        output = ""
+        error = ""
+        try:
+            result = subprocess.run(
+                [sys.executable, '-c', code],
+                capture_output=True,
+                text=True,
+                timeout=5  
+            )
+            output = result.stdout
+            error = result.stderr
+        except Exception as e:
+           error = str(e)
+
+        return str([error, output])
 
 
 @app.route('/favicon.ico')

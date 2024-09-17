@@ -1,0 +1,21 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='sandbox.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Компилятор</h2>
+        <div class="content-divider-top"></div>
+        <div class="card-wrapper">
+           <div class="card">
+               <h4>Задача #{{ task_item.id }}</h4>
+               <p>{{ task_item.task_text }}</p>
+               <form method="POST" action="">
+                  <textarea name="code" placeholder="Введите ваш Python код..."></textarea><br>
+                  <input type="submit" value="Запустить">
+              </form>
+            </div> 
+         </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}

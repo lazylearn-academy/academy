@@ -14,9 +14,9 @@
                 <h4>Задания</h4>
                 {% for coding_task in theme_item.coding_tasks %}
                     {% if coding_task.id in user.completed_coding_tasks %}
-                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a style="color: rgb(27, 209, 27);" class="sandbox-link" href="#">Решено!</a></p>
+                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a style="color: rgb(27, 209, 27);" class="sandbox-link" href="{{ url_for('sandbox', task_id=coding_task.id) }}">Решено!</a></p>
                     {% else %}
-                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a class="sandbox-link" href="#">Решить</a></p>
+                        <p>{{ loop.index }}) {{ coding_task.task_text }}<a class="sandbox-link" href="{{ url_for('sandbox', task_id=coding_task.id) }}">Решить</a></p>
                     {% endif %}
                 {% endfor %}
             </div>
