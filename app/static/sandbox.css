@@ -106,11 +106,24 @@ pre {
   word-wrap: break-word;
 }
 
+h4 {
+  margin-bottom: 3%;
+}
+
+form {
+  margin-bottom: 3%;
+}
 
 .completed {
   color: rgb(27, 209, 27);
+  border: 1px solid rgb(27, 209, 27);
+  padding: 1.5% 3% 1.5% 3%;
 }
 
 .code-result-error {
   color: rgb(255, 0, 106);
+}
+
+.code-result-complete {
+  color: rgb(27, 209, 27);
 }

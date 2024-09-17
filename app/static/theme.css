@@ -19,7 +19,18 @@
 
 .sandbox-link:hover {
   border-color: hsla(var(--primary), 1);
-  color: hsla(var(--primary), 1)
+}
+
+.sandbox-link-completed {
+  text-decoration: none;
+  border: 1px solid rgb(27, 209, 27);
+  padding: 1.5% 3% 1.5% 3%;
+  border-radius: 4%;
+  margin-left: 15%;
+}
+
+.sandbox-link-completed:hover {
+  border-color: hsla(var(--primary), 1);
 }
 
 ul {

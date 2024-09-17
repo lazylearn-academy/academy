@@ -68,6 +68,7 @@ p {
     border: 1px solid white;
     cursor: pointer;
   }
+  
 .select-course p:hover {
   color: hsla(var(--primary), 1); 
 }

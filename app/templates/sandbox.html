@@ -9,19 +9,24 @@
         <div class="card-wrapper">
            <div class="card">
                <h4>Задача #{{ task_item.id }}</h4>
+               {% if task_item in user.completed_coding_tasks %}
+                    <span class="completed">Задача решена</span>
+                {% endif %}
                <p>{{ task_item.task_text }}</p>
                <p>Необходимый результат: {{ task_item.answer }}</p>
-               {% if task_item in user.completed_coding_tasks %}
-                    <span class="completed">Задача решена!</span>
-               {% else %}
-                    <form method="POST" action="">
+                <form method="POST" action="">
+                    {% if submission is none %}
                         <textarea name="code" placeholder="Введите ваш Python код..."></textarea><br>
-                        <input type="submit" value="Запустить">
-                    </form>
-                    {% if code_result is not none %}
-                        <span class="code-result-error">{{ code_result }}</span>
+                    {% else %}
+                        <textarea name="code" placeholder="Введите ваш Python код...">{{ submission.code }}</textarea><br>
                     {% endif %}
-              {% endif %}
+                    <input type="submit" value="Запустить">
+                </form>
+                {% if code_result is not none and code_result != "Код работает верно" %}
+                    <span class="code-result-error">{{ code_result }}</span>
+                {% elif code_result == "Код работает верно" %}
+                    <span class="code-result-complete">{{ code_result }}</span>
+                {% endif %}
             </div> 
          </div>
         <div class="content-divider-bottom"></div>

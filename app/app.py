@@ -223,6 +223,16 @@ class CodingTask(db.Model):
     theme_id = db.Column(db.Integer, db.ForeignKey('theme.id'), nullable=False)
 
 
+class CodingTaskSubmission(db.Model):
+    __tablename__ = 'coding_task_submission'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    code = db.Column(db.String(3000), nullable=False)
+    code_result = db.Column(db.String(3000), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    task_id = db.Column(db.Integer, db.ForeignKey('coding_task.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    passed = db.Column(db.Boolean, nullable=True)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -525,12 +535,13 @@ def get_blogpost(blogpost_id):
 def sandbox():
     task_id = request.args.get("task_id")
     task_item = CodingTask.query.filter_by(id=task_id).first()
+    submission = CodingTaskSubmission.query.filter_by(task_id=task_id, user_id=current_user.id).order_by(CodingTaskSubmission.created_at.desc()).first()
     if request.method == "GET":
-        return render_template("sandbox.html", task_item=task_item, code_result=None, user=current_user, link_styles=[
+        return render_template("sandbox.html", task_item=task_item, submission=submission, code_result=None, user=current_user, link_styles=[
                 "", "", "", "color:white;", "", "", ""
             ])
     elif request.method == "POST":
-        code = request.form.get("code").encode("utf-8")
+        code = request.form.get("code")
         output = ""
         error = ""
         try:
@@ -547,17 +558,31 @@ def sandbox():
         
         output = output.strip()
 
+        passed = False
         if len(error) > 0:
             code_result = f"Код работает с ошбикой: {error}"
         elif output != task_item.answer:
             code_result = f"Неверный ответ: {output}"
         elif output == task_item.answer:
             user = current_user
-            user.completed_coding_tasks.append(task_item)
-            db.session.commit()
-            code_result = None
+            code_result = "Код работает верно"
+            passed = True
+            if task_item not in user.completed_coding_tasks:
+                user.completed_coding_tasks.append(task_item)
+                db.session.commit()
 
-        return render_template("sandbox.html", task_item=task_item, code_result=code_result, user=current_user, link_styles=[
+        submission = CodingTaskSubmission(
+            code = code,
+            code_result = code_result,
+            task_id = task_id,
+            user_id = current_user.id,
+            passed = passed
+        )
+
+        db.session.add(submission)
+        db.session.commit()
+
+        return render_template("sandbox.html", task_item=task_item, submission=submission, code_result=code_result, user=current_user, link_styles=[
                 "", "", "", "color:white;", "", "", ""
             ])
 
