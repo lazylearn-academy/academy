@@ -26,6 +26,23 @@
                     </div>
                 </div> 
             {% endfor %}
+            {% if can_get_cert %}
+            <div class="card-wrapper">
+                <div class="card">
+                    <p><a style="font-size: 2rem;" href= "{{ url_for('get_certificate', course_id=course_item.id) }}"> 
+                        Получить сертификат
+                     </a></p>
+                </div>
+            </div> 
+            {% else %}
+            <div class="card-wrapper">
+                <div class="card">
+                    <p><a class="currently-disabled" style="color: gray; font-size: 2rem;" href="#"> 
+                        Получить сертификат
+                     </a></p>
+                </div>
+            </div>   
+            {% endif %}
             <div class="content-divider-bottom"></div>
         {% else %}
         <div class="content-divider-top"></div>

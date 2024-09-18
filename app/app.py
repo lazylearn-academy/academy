@@ -15,6 +15,10 @@ from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
 from post import send_email_verification
 import subprocess
 import sys
+from PIL import Image, ImageDraw, ImageFont
+import datetime
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -151,6 +155,11 @@ user_coding_task = db.Table('user_coding_task',
 )
 
 
+user_theme = db.Table('user_theme',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
+)
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -164,6 +173,7 @@ class User(db.Model, UserMixin):
     surname = db.Column(db.String(30), nullable=False, unique=False)
     courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
     completed_coding_tasks = db.relationship('CodingTask', secondary=user_coding_task, lazy='subquery', backref=db.backref('users', lazy=True))
+    viewed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
 
 
 class Course(db.Model):
@@ -226,6 +236,7 @@ class CodingTaskSubmission(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('coding_task.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     passed = db.Column(db.Boolean, nullable=True)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -408,7 +419,25 @@ def home():
 @app.route('/lk')
 @login_required
 def lk():
-    return render_template("lk.html", user=current_user, link_styles=[
+    courses_stats = []
+    for course in  current_user.courses:
+        course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course.id).with_entities(Block.id).all())).all()
+        completed_themes = []
+        for theme in course_themes:
+            if len(theme.coding_tasks) == 0:
+                if theme in current_user.viewed_themes:
+                    completed_themes.append(theme)
+                continue
+            completed = True
+            for task in theme.coding_tasks:
+                if task not in current_user.completed_coding_tasks:
+                    completed = False
+                    break
+            if completed:
+                completed_themes.append(theme)
+        courses_stats.append((course, len(completed_themes), len(course_themes)))
+            
+    return render_template("lk.html", user=current_user, courses_stats=courses_stats, link_styles=[
         "", "color:white;", "", "", "", "", ""
     ])
 
@@ -459,6 +488,8 @@ def get_course(course_id):
         completed_themes = []
         for theme in course_themes:
             if len(theme.coding_tasks) == 0:
+                if theme in current_user.viewed_themes:
+                    completed_themes.append(theme)
                 continue
             completed = True
             for task in theme.coding_tasks:
@@ -469,7 +500,10 @@ def get_course(course_id):
             if completed:
                 completed_themes.append(theme)
 
+        can_get_cert = len(completed_themes) == len(course_themes)
+
         return render_template("course.html", course_item=course_item, completed_themes=completed_themes,
+                               can_get_cert=can_get_cert,
                                user=current_user, link_styles=[
             "", "", "", "color:white;", "", "", ""
         ])
@@ -503,6 +537,9 @@ def get_theme(theme_id):
             theme_idx_in_order = ordered_themes.index(theme_id)
             next_theme_id = ordered_themes[theme_idx_in_order + 1]
             previous_theme_id = ordered_themes[theme_idx_in_order - 1]
+
+        current_user.viewed_themes.append(theme_item)
+        db.session.commit()
 
         return render_template("theme.html", user=current_user, theme_item=theme_item, block_order_in_course=block_order_in_course, 
                                course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
@@ -594,6 +631,48 @@ def sandbox():
         return render_template("sandbox.html", task_item=task_item, submission=submission, code_result=code_result, user=current_user, link_styles=[
                 "", "", "", "color:white;", "", "", ""
             ])
+
+
+@app.get("/certificate")
+@login_required
+def get_certificate():
+    course_id = request.args.get("course_id")
+    course_item = Course.query.filter_by(id = course_id).first()
+    course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course_id).with_entities(Block.id).all())).all()
+    completed_themes = []
+    for theme in course_themes:
+        if len(theme.coding_tasks) == 0:
+            if theme in current_user.viewed_themes:
+                completed_themes.append(theme)
+            continue
+        completed = True
+        for task in theme.coding_tasks:
+            if task not in current_user.completed_coding_tasks:
+                completed = False
+                break
+        if completed:
+            completed_themes.append(theme)
+
+    can_get_cert = len(completed_themes) == len(course_themes)
+    cert = None
+    if can_get_cert:
+        img = Image.open("static/cert-template.jpg")
+        img = img.resize((900, 500))
+        d = ImageDraw.Draw(img)
+        font = ImageFont.truetype('arial.ttf', 24)
+        certificate_text = f"Сертификат о Прохождении\n\nНастоящий сертификат подтверждает, что {current_user.name} {current_user.surname}\nуспешно прошел курс {course_item.name}.\n\nДата выдачи: {datetime.date.today().strftime('%B %d, %Y')}\n\nПоздравляем с прохождением! Академия LazyLearn."
+        d.text((100, 100), certificate_text, font=font, fill=(0, 0, 0))
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        cert = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    return render_template("certificate.html", course=course_item, user=current_user, cert=cert, link_styles=[
+        "", "", "", "color:white;", "", "", ""
+    ])
+
+
+    
 
 
 @app.route('/favicon.ico')

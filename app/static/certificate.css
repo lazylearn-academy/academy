@@ -48,6 +48,10 @@ color: hsla(var(--primary), 1);
 }
 
 
+img {
+  margin-top: 3%;
+}
+
 .content-divider-bottom {
   border: 1px solid black;
   height: 5px;

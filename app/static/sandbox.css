@@ -134,3 +134,19 @@ form {
   padding-right: 5%;
   font-size: 150%;
 }
+
+@media only screen and (max-width: 1024px) {
+  p {
+    font-size: 180%;
+  }
+}
+
+@media only screen and (max-width: 780px) {
+  p {
+      font-size: 100%;
+  }
+  .content-divider-bottom {
+    margin-bottom: 180%;
+  }
+}
+

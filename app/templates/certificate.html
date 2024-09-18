@@ -1,0 +1,23 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='certificate.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Сертификат</h2>
+        <div class="content-divider-top"></div>
+            <div class="card-wrapper">
+                <div class="card">
+                    <h4>Сертификат по курсу {{ course.name }}</h4>
+                    {% if cert is not none %}
+                    <img src="data:image/png;base64, {{ cert }}" alt="сертификат о прохождении" />
+                    {% else %}
+                    <p>Пока что вы не можете получить сертификат по данному курсу. Для получения сертификата пройдите 
+                        все темы и решите задания.
+                    </p>
+                    {% endif %}
+                </div>
+            </div> 
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}
