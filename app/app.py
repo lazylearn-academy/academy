@@ -659,7 +659,7 @@ def get_certificate():
         img = Image.open("static/cert-template.jpg")
         img = img.resize((900, 500))
         d = ImageDraw.Draw(img)
-        font = ImageFont.truetype('arial.ttf', 24)
+        font = ImageFont.load_default()
         certificate_text = f"Сертификат о Прохождении\n\nНастоящий сертификат подтверждает, что {current_user.name} {current_user.surname}\nуспешно прошел курс {course_item.name}.\n\nДата выдачи: {datetime.date.today().strftime('%B %d, %Y')}\n\nПоздравляем с прохождением! Академия LazyLearn."
         d.text((100, 100), certificate_text, font=font, fill=(0, 0, 0))
         buffer = io.BytesIO()
