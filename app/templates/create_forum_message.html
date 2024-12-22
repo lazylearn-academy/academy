@@ -1,0 +1,18 @@
+{% extends "layout.html" %} 
+{% block imports %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='create_forum_message.css') }}">
+{% endblock %}
+{% block content %}
+    <main id="main" class="flexbox-col">
+        <h2>Вход</h2>
+        <div class="content-divider-top"></div>
+            <div class="form-wrapper">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    {{ form.text(size=12, class_='form-item') }}
+                    {{ form.submit(size=12, class_='form-item') }}
+                </form>
+            </div>
+        <div class="content-divider-bottom"></div>
+    </main>
+{% endblock %}

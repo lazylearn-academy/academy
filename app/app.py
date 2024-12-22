@@ -57,6 +57,15 @@ class CreateForumThemeForm(FlaskForm):
     submit = SubmitField("Создать")
 
 
+class CreateForumMessageForm(FlaskForm):
+    text = TextAreaField(validators=[
+        InputRequired(),
+        Length(min=1, max=2000)
+    ], render_kw={"placeholder": "Сообщение"})
+
+    submit = SubmitField("Создать")
+
+
 class RegisterForm(FlaskForm):
     email = EmailField(validators=[
         InputRequired(),
@@ -183,6 +192,12 @@ user_theme = db.Table('user_theme',
     db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
 )
 
+# 19
+user_viewed_forum_theme = db.Table('user_viewed_forum_theme',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('theme_id', db.Integer, db.ForeignKey('forum_theme.id'), primary_key=True),
+)
+
 # 5
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -197,6 +212,7 @@ class User(db.Model, UserMixin):
     courses = db.relationship('Course', secondary=user_course, lazy='subquery', backref=db.backref('users', lazy=True))
     completed_coding_tasks = db.relationship('CodingTask', secondary=user_coding_task, lazy='subquery', backref=db.backref('users', lazy=True))
     viewed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
+    viewed_forum_themes = db.relationship('ForumTheme', secondary=user_viewed_forum_theme, lazy='subquery', backref=db.backref('users', lazy=True))
     forum_themes_created = db.relationship('ForumTheme', backref='user', lazy=True)
     forum_themes_created_messages = db.relationship('ForumThemeMessage', backref='user', lazy=True)
     certificates = db.relationship('Certificate', backref='user', lazy=True)
@@ -291,6 +307,8 @@ class Certificate(db.Model):
     url = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
+
+
 # 15
 class ForumTheme(db.Model):
     __tablename__ = 'forum_theme'
@@ -307,7 +325,7 @@ class ForumThemeMessage(db.Model):
     __tablename__ = 'forum_theme_message'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     theme_id = db.Column(db.Integer, db.ForeignKey('forum_theme.id'), nullable=False)
-    text = db.Column(db.String(120), nullable=False, unique=True)
+    text = db.Column(db.String(120), nullable=False, unique=False)
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
@@ -328,11 +346,6 @@ class Avatar(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-# 19
-user_viewed_forum_theme = db.Table('user_viewed_forum_theme',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('forum_theme_id', db.Integer, db.ForeignKey('forum_theme.id'), primary_key=True),
-)
 
 # 20 
 class BillingAccount(db.Model):
@@ -529,7 +542,7 @@ def home():
 @login_required
 def lk():
     courses_stats = []
-    for course in  current_user.courses:
+    for course in current_user.courses:
         course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course.id).with_entities(Block.id).all())).all()
         completed_themes = []
         for theme in course_themes:
@@ -545,8 +558,8 @@ def lk():
             if completed:
                 completed_themes.append(theme)
         courses_stats.append((course, len(completed_themes), len(course_themes)))
-            
-    return render_template("lk.html", user=current_user, courses_stats=courses_stats, link_styles=[
+    certificates = current_user.certificates
+    return render_template("lk.html", user=current_user, courses_stats=courses_stats,certs=certificates, link_styles=[
         "", "color:white;", "", "", "", "", "", ""
     ])
 
@@ -589,6 +602,7 @@ def helpproject():
 
 
 @app.route('/forum')
+@login_required
 def forum():
     themes = ForumTheme.query.order_by(ForumTheme.created_at.desc()).all()
     return render_template("forum.html", link_styles=[
@@ -597,6 +611,7 @@ def forum():
 
 
 @app.route('/create_forum_theme', methods=['GET', 'POST'])
+@login_required
 def create_forum_theme():
     form = CreateForumThemeForm()
     if form.validate_on_submit():
@@ -614,37 +629,69 @@ def create_forum_theme():
     ])
 
 
+@app.route('/forum/themes/<theme_id>')
+@login_required
+def get_forum_theme(theme_id):
+    try:
+        theme = ForumTheme.query.filter_by(id=theme_id).first()
+        user = current_user
+        user.viewed_forum_themes.append(theme)
+        db.session.commit()
+        return render_template("forum_theme.html", theme=theme, link_styles=[
+            "", "", "", "", "color:white;", "", "", ""
+        ])
+    except Exception as e:
+        print(e)
+        abort(404)
+
+
+@app.route('/forum/create_forum_message/<theme_id>', methods=['GET', 'POST'])
+@login_required
+def create_forum_message(theme_id):
+    form = CreateForumMessageForm()
+    if form.validate_on_submit():
+        forum_theme = ForumTheme.query.filter_by(id = theme_id).first()
+        mess = ForumThemeMessage(
+            theme_id=forum_theme.id,
+            text = form.text.data,
+            creator_id=current_user.id
+        )
+        db.session.add(mess)
+        forum_theme.messages.append(mess)
+        current_user.forum_themes_created_messages.append(mess)
+        db.session.commit()
+        return redirect(url_for("get_forum_theme", theme_id=theme_id))
+            
+    return render_template('create_forum_message.html', form=form, link_styles=[
+        "", "", "", "", "", "", "", "", "color:white;"
+    ])
+
 
 @app.route('/courses/<course_id>')
 @login_required
-def get_course(course_id):
-    try:
-        course_item = Course.query.filter_by(id = course_id).first()
-        course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course_id).with_entities(Block.id).all())).all()
-        completed_themes = []
-        for theme in course_themes:
-            if len(theme.coding_tasks) == 0:
-                if theme in current_user.viewed_themes:
-                    completed_themes.append(theme)
-                continue
-            completed = True
-            for task in theme.coding_tasks:
-                if task not in current_user.completed_coding_tasks:
-                    completed = False
-                    break
-
-            if completed:
+def get_course(course_id): 
+    course_item = Course.query.filter_by(id = course_id).first()
+    course_themes = Theme.query.filter(Theme.block_id.in_(Block.query.filter_by(course_id=course_id).with_entities(Block.id).all())).all()
+    completed_themes = []
+    for theme in course_themes:
+        if len(theme.coding_tasks) == 0:
+            if theme in current_user.viewed_themes:
                 completed_themes.append(theme)
+            continue
+        completed = True
+        for task in theme.coding_tasks:
+            if task not in current_user.completed_coding_tasks:
+                completed = False
+                break
+        if completed:
+            completed_themes.append(theme)
+    can_get_cert = len(completed_themes) == len(course_themes)
+    return render_template("course.html", course_item=course_item, completed_themes=completed_themes,
+                           can_get_cert=can_get_cert,
+                           user=current_user, link_styles=[
+        "", "", "", "color:white;", "", "", "", ""
+    ])
 
-        can_get_cert = len(completed_themes) == len(course_themes)
-
-        return render_template("course.html", course_item=course_item, completed_themes=completed_themes,
-                               can_get_cert=can_get_cert,
-                               user=current_user, link_styles=[
-            "", "", "", "color:white;", "", "", ""
-        ])
-    except:
-        abort(404)
 
 
 @app.route('/themes/<theme_id>')
@@ -680,7 +727,7 @@ def get_theme(theme_id):
         return render_template("theme.html", user=current_user, theme_item=theme_item, block_order_in_course=block_order_in_course, 
                                course_name=course_name, course_id=course_id, previous_theme_id=previous_theme_id, next_theme_id=next_theme_id,
                                link_styles=[
-            "", "", "", "color:white;", "", "", ""
+            "", "", "", "color:white;", "", "", "", ""
         ])
     except:
         abort(404)
@@ -706,7 +753,7 @@ def get_blogpost(blogpost_id):
     try:
         blogpost = BlogPost.query.filter_by(id=blogpost_id).first()
         return render_template("blogpost.html", blogpost=blogpost, link_styles=[
-            "", "", "", "", "color:white;", "", ""
+            "", "", "", "", "color:white;", "", "", ""
         ])
     except:
         abort(404)
@@ -720,7 +767,7 @@ def sandbox():
     submission = CodingTaskSubmission.query.filter_by(task_id=task_id, user_id=current_user.id).order_by(CodingTaskSubmission.created_at.desc()).first()
     if request.method == "GET":
         return render_template("sandbox.html", task_item=task_item, submission=submission, code_result=None, user=current_user, link_styles=[
-                "", "", "", "color:white;", "", "", ""
+                "", "", "", "color:white;", "", "", "", ""
             ])
     elif request.method == "POST":
         code = request.form.get("code")
@@ -765,7 +812,7 @@ def sandbox():
         db.session.commit()
 
         return render_template("sandbox.html", task_item=task_item, submission=submission, code_result=code_result, user=current_user, link_styles=[
-                "", "", "", "color:white;", "", "", ""
+                "", "", "", "color:white;", "", "", "", ""
             ])
 
 
@@ -803,8 +850,27 @@ def get_certificate():
         buffer.seek(0)
         cert = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+        user_certs = current_user.certificates
+
+        name = f"Сертификат курса {course_item.name}"
+        should_create_entity = True
+        for user_cert in user_certs:
+            if name == user_cert.name:
+                should_create_entity = False
+                break
+
+        if should_create_entity:
+            cert_entity = Certificate(
+                name = name,
+                user_id = current_user.id,
+                url = f"/certificate?course_id={course_id}"
+            )
+
+            db.session.add(cert_entity)
+            db.session.commit()
+
     return render_template("certificate.html", course=course_item, user=current_user, cert=cert, link_styles=[
-        "", "", "", "color:white;", "", "", ""
+        "", "", "", "color:white;", "", "", "", ""
     ])
 
 

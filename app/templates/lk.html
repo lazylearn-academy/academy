@@ -17,6 +17,16 @@
                     {% endfor %}
                 </div>
             </div> 
+            <div class="card-wrapper">
+                <div class="card">
+                    <h4>Мои сертификаты</h4>
+                    {% for cert in certs %}
+                    <p><a href= "{{ cert.url }}"> 
+                        {{ cert.name }}
+                     </a></p>
+                    {% endfor %}
+                </div>
+            </div> 
         <div class="content-divider-bottom"></div>
     </main>
 {% endblock %}
