@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 from wtforms.validators import InputRequired, Length, ValidationError, regexp
 import os
 from jinja2 import StrictUndefined
-from config import SECRET_KEY
+from config import SECRET_KEY, SHOULD_CREATE_DB, IS_PROD, DEV_HOST, PROD_HOST
 import random
 from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
 from post import send_email_verification
@@ -704,4 +704,8 @@ def robots():
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0")
+    if SHOULD_CREATE_DB:
+        with app.app_context():
+            db.create_all()
+    app_host = PROD_HOST if IS_PROD else DEV_HOST
+    app.run(host=app_host)
