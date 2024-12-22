@@ -3,13 +3,11 @@ from flask import Flask, render_template, send_from_directory, render_template, 
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from wtforms import EmailField, PasswordField, SubmitField, StringField, DateField, TextAreaField, SelectField, FieldList, IntegerField
-from flask_wtf import FlaskForm
+from forms import RecoverConfirmationForm, RegisterForm, RecoverForm, ChangePasswordForm, ConfirmationForm, LoginForm
 from flask_migrate import Migrate
-from wtforms.validators import InputRequired, Length, ValidationError, regexp
 import os
 from jinja2 import StrictUndefined
-from config import SECRET_KEY, SHOULD_CREATE_DB, IS_PROD, DEV_HOST, PROD_HOST
+from config import SECRET_KEY, SHOULD_CREATE_DB, ENV, DEV_HOST, PROD_HOST
 import random
 from config import DB_HOST, DB_USER, DB_PWD, DB_NAME, DB_PORT
 from post import send_email_verification
@@ -42,125 +40,25 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class RegisterForm(FlaskForm):
-    email = EmailField(validators=[
-        InputRequired(),
-        Length(min=5, max=120)
-    ], render_kw={"placeholder": "Email"})
-
-    name = StringField(validators=[
-        InputRequired(),
-        Length(min=1, max=30)
-    ], render_kw={"placeholder": "Имя"})
-
-    surname = StringField(validators=[
-        InputRequired(),
-        Length(min=1, max=30)
-    ], render_kw={"placeholder": "Фамилия"})
-
-    password = PasswordField(validators=[
-        InputRequired(),
-        Length(min=8, max=30)
-    ], render_kw={"placeholder": "Пароль"})
-
-    password_repeat = PasswordField(validators=[
-        InputRequired(),
-        Length(min=8, max=30)
-    ], render_kw={"placeholder": "Повторите пароль"})
-
-    submit = SubmitField("Продолжить")
-
-    @staticmethod
-    def validate_username(self, email):
-        existing_user_email = User.query.filter_by(
-            username=email.data).first()
-
-        if existing_user_email:
-            raise ValidationError(
-                'Такая почта уже существует. Пожалуйста, проверьте правильность или войдите в систему.')
-        
-
-
-class ChangePasswordForm(FlaskForm):
-    password = PasswordField(validators=[
-        InputRequired(),
-        Length(min=8, max=30)
-    ], render_kw={"placeholder": "Пароль"})
-
-    password_repeat = PasswordField(validators=[
-        InputRequired(),
-        Length(min=8, max=30)
-    ], render_kw={"placeholder": "Повторите пароль"})
-
-    submit = SubmitField("Продолжить")
-
-        
-class RecoverForm(FlaskForm):
-    email = EmailField(validators=[
-        InputRequired(),
-        Length(min=5, max=120)
-    ], render_kw={"placeholder": "Email"})
-
-    submit = SubmitField("Продолжить")
-
-
-class ConfirmationForm(FlaskForm):
-    verification_code = StringField(validators=[
-        InputRequired()
-    ], render_kw={"placeholder": "Код подтверждения"})
-
-    submit = SubmitField("Зарегистрироваться")
-
-    @staticmethod
-    def validate_username(self, email):
-        existing_user_email = User.query.filter_by(
-            username=email.data).first()
-
-        if existing_user_email:
-            raise ValidationError(
-                'Такая почта уже существует. Пожалуйста, проверьте правильность или войдите в систему.')
-
-
-class RecoverConfirmationForm(FlaskForm):
-    verification_code = StringField(validators=[
-        InputRequired()
-    ], render_kw={"placeholder": "Код подтверждения"})
-
-    submit = SubmitField("Зарегистрироваться")
-        
-
-
-class LoginForm(FlaskForm):
-    email = EmailField(validators=[
-        InputRequired(),
-        Length(min=5, max=120)
-    ], render_kw={"placeholder": "Email"})
-
-    password = PasswordField(validators=[
-        InputRequired(),
-        Length(min=8, max=30)
-    ], render_kw={"placeholder": "Пароль"})
-
-    submit = SubmitField("Войти в систему")
-
-
+# 1
 user_course = db.Table('user_course',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 )
 
+# 2
 user_coding_task = db.Table('user_coding_task',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('coding_task_id', db.Integer, db.ForeignKey('coding_task.id'), primary_key=True),
 )
 
-
+# 3
 user_theme = db.Table('user_theme',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('theme_id', db.Integer, db.ForeignKey('theme.id'), primary_key=True),
 )
 
-
+# 4
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -175,7 +73,7 @@ class User(db.Model, UserMixin):
     completed_coding_tasks = db.relationship('CodingTask', secondary=user_coding_task, lazy='subquery', backref=db.backref('users', lazy=True))
     viewed_themes = db.relationship('Theme', secondary=user_theme, lazy='subquery', backref=db.backref('users', lazy=True))
 
-
+# 5
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -186,7 +84,7 @@ class Course(db.Model):
     blocks = db.relationship('Block', backref='course', lazy=True)
     is_ready = db.Column(db.Boolean, nullable=False, default=False)
 
-
+# 6
 class Block(db.Model):
     __tablename__ = 'block'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -196,8 +94,7 @@ class Block(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     themes = db.relationship('Theme', backref='block', lazy=True)
 
-
-
+# 7
 class Theme(db.Model):
     __tablename__ = 'theme'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -208,7 +105,7 @@ class Theme(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     coding_tasks = db.relationship('CodingTask', backref='theme', lazy=True)
 
-
+# 8
 class BlogPost(db.Model):
     __tablename__ = 'blogpost'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -217,7 +114,7 @@ class BlogPost(db.Model):
     article_text = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
-
+# 9
 class CodingTask(db.Model):
     __tablename__ = 'coding_task'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -226,7 +123,7 @@ class CodingTask(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     theme_id = db.Column(db.Integer, db.ForeignKey('theme.id'), nullable=False)
 
-
+# 10
 class CodingTaskSubmission(db.Model):
     __tablename__ = 'coding_task_submission'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -704,8 +601,9 @@ def robots():
 
 
 if __name__ == "__main__":
-    if SHOULD_CREATE_DB:
+    if SHOULD_CREATE_DB == "YES":
         with app.app_context():
             db.create_all()
-    app_host = PROD_HOST if IS_PROD else DEV_HOST
+    app_host = PROD_HOST if ENV == "PROD" else DEV_HOST
+    print(app_host)
     app.run(host=app_host)
